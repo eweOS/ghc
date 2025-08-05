@@ -60,7 +60,7 @@ import GHC.CmmToAsm.Config
 import GHC.CmmToAsm.Types
 
 
-import GHC.Cmm.Dataflow.Collections
+import GHC.Cmm.Dataflow.Label
 import GHC.Cmm
 import GHC.Cmm.CLabel
 import GHC.Cmm.Utils (cmmLoadBWord)
@@ -132,6 +132,11 @@ cmmMakeDynamicReference config referenceKind lbl
               addImport symbolPtr
               return $ cmmMakePicReference config symbolPtr
 
+        AccessViaSymbolPtr | ArchRISCV64 <- platformArch platform -> do
+              let symbolPtr = mkDynamicLinkerLabel SymbolPtr lbl
+              addImport symbolPtr
+              return $ cmmMakePicReference config symbolPtr
+
         AccessViaSymbolPtr -> do
               let symbolPtr = mkDynamicLinkerLabel SymbolPtr lbl
               addImport symbolPtr
@@ -162,6 +167,10 @@ cmmMakePicReference config lbl
   -- no pic base reg on AArch64, however indicate this symbol should go through
   -- the global offset table (GOT).
   | ArchAArch64 <- platformArch platform
+  = CmmLit $ CmmLabel lbl
+
+  -- as on AArch64, there's no pic base register.
+  | ArchRISCV64 <- platformArch platform
   = CmmLit $ CmmLabel lbl
 
   | OSAIX <- platformOS platform

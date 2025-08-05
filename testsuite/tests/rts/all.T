@@ -65,6 +65,10 @@ test('divbyzero',
       # each devision. Neither gcc, nor llvm do this as of right now.  Microsoft
       # apparently does so though?
       when(arch('aarch64'), skip),
+      # RISCV64 has no exception for this, too. Instead all bits of the result
+      # are set. As with Aarch64 neither GCC nor LLVM translate this result to
+      # an exception.
+      when(arch('riscv64'), skip),
       # Apparently the output can be different on different
       # Linux setups, so just ignore it. As long as we get
       # the right exit code we're OK.
@@ -215,10 +219,6 @@ test('EventlogOutput_IPE',
        ignore_stderr
      ],
      makefile_test, ['EventlogOutput_IPE'])
-
-# Remove the capability prefix from IPE event log lines.
-def noCapabilityOutputFilter(s):
-     return re.sub(r'[a-f0-9]+: IPE:', 'IPE:', s)
 
 test('T4059', req_c, makefile_test, ['T4059'])
 
